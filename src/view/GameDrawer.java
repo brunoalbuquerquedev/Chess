@@ -10,7 +10,6 @@ import pieces.Rook;
 import javax.swing.*;
 import java.awt.*;
 import java.util.Objects;
-import java.util.Optional;
 
 public class GameDrawer extends JPanel {
 
@@ -69,53 +68,51 @@ public class GameDrawer extends JPanel {
     }
 
     /**
-     * Perform the icon's move on the panel.
-     * @param aX {@code x} coordinate from the first piece.
-     * @param aY {@code y} coordinate from the first piece.
-     * @param bX {@code x} coordinate from the second piece.
-     * @param bY {@code y} coordinate from the second piece.
-     * @throws KingNotFoundException if {@code King}'s instance is not found.
+     * Perform the icon's move on the panel for a normal (non-castling) move.
+     * @param aX {@code x} coordinate from the source square.
+     * @param aY {@code y} coordinate from the source square.
+     * @param bX {@code x} coordinate from the target square.
+     * @param bY {@code y} coordinate from the target square.
      */
-    public void graphicPieceMove(Integer aX, Integer aY, Integer
-            bX, Integer bY) throws KingNotFoundException {
+    public void graphicNormalMove(Integer aX, Integer aY, Integer bX, Integer bY) {
+        iconMove(aX, aY, bX, bY);
+    }
 
-        /* Get the rook's position before the move and calculate the rook's position
-        after the move. */
-        int kingRow = (aX > bX) ? aX - 2 : aX + 2;
-        int rookRow = (aX > bX) ? bX + 2 : bX - 3;
+    /**
+     * Perform the icon's move on the panel for a castling move.
+     * Moves both the king and the rook icons to their post-castling positions
+     * and increments their move counters.
+     * @param kingSourceX {@code x} coordinate from the king's source square.
+     * @param kingSourceY {@code y} coordinate from the king's source square.
+     * @param rookSourceX {@code x} coordinate from the rook's source square.
+     * @param rookSourceY {@code y} coordinate from the rook's source square.
+     * @throws KingNotFoundException if {@code King}'s instance is not found on the board.
+     */
+    public void graphicCastlingMove(Integer kingSourceX, Integer kingSourceY,
+                                    Integer rookSourceX, Integer rookSourceY)
+            throws KingNotFoundException {
 
-        Optional<Position> optionalKingRow = Optional.of(new Position(kingRow, aY));
-        Optional<Position> optionalRookRow = Optional.of(new Position(rookRow, bY));
+        /* Calculate destination rows for the king and rook after castling.
+         * King moves 2 squares toward the rook; rook lands on the other side. */
+        int kingDestRow = (kingSourceX > rookSourceX)
+                ? kingSourceX - 2 : kingSourceX + 2;
+        int rookDestRow = (kingSourceX > rookSourceX)
+                ? rookSourceX + 2 : rookSourceX - 3;
 
-        if (match.validateCastlingMove(optionalKingRow.get(),
-                optionalRookRow.get())
-                && match.validateCastlingPieces(optionalKingRow.get(),
-                optionalRookRow.get())) {
+        iconMove(kingSourceX, kingSourceY, kingDestRow, kingSourceY);
+        iconMove(rookSourceX, rookSourceY, rookDestRow, rookSourceY);
 
-            iconMove(aX, aY, optionalKingRow.get().getRow(), aY);
-            iconMove(bX, bY, optionalRookRow.get().getRow(), bY);
+        /*
+         * Increment move counters for both pieces only after the graphical move,
+         * because the castling validation requires move count to be zero.
+         */
+        ChessColor playerColor = match.getPlayerColor();
+        Position kingPosition = match.getBoard().getKingPosition(playerColor);
 
-            /*
-             * Add the movement counter for both pieces only after the move,
-             * because the validate method can only perform the castle move
-             * with the movement counter equal to zero.
-             * So add the movement counter after the graphical move to
-             * make sure the piece icon also moves.
-             */
-            ChessColor playerColor = match.getPlayerColor();
-            Optional<Position> optionalKingPosition = Optional
-                    .ofNullable(match.getBoard().getKingPosition(playerColor));
-
-            if (optionalKingPosition.isEmpty())
-                throw new KingNotFoundException("King piece not found.");
-
-            King king = (King) match.getBoard().getPiece(optionalKingPosition.get());
-            Rook rook = (Rook) match.getBoard().getPiece(optionalRookRow.get());
-            king.addMoveCount();
-            rook.addMoveCount();
-        } else {
-            iconMove(aX, aY, bX, bY);
-        }
+        King king = (King) match.getBoard().getPiece(kingPosition);
+        Rook rook = (Rook) match.getBoard().getPiece(new Position(rookDestRow, rookSourceY));
+        king.addMoveCount();
+        rook.addMoveCount();
     }
 
     /* Load all pieces icons to the board. */
