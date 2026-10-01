@@ -6,7 +6,6 @@ import boardgame.Position;
 import chess.ChessColor;
 import chess.ChessMatch;
 import chess.ChessPiece;
-import util.Util;
 
 public class King extends ChessPiece {
 
@@ -86,53 +85,45 @@ public class King extends ChessPiece {
     }
 
     /**
-     * The source matrix receives all possible moves for the king on the board.
-     * <p>
-     * Possible moves will always receive true as parameter, because <code>source</code>
-     * needs to have the possible moves of the piece considering the movements
-     * and the captures.
+     * Returns the set of squares the king can legally move to, excluding any
+     * square that is under attack by an opponent piece.
      *
-     * <p> Possible moves will only receive <code>false</code> as parameter when it needs
-     * the possible movements of a piece until it encounters another piece on the board,
-     * regardless of the piece's color.
+     * <p>Unlike other pieces, the king must never step onto an attacked square,
+     * regardless of whether that square is empty or occupied by an opponent.
+     * The method therefore builds the attack map for all opponent pieces and
+     * removes every attacked square from the king's candidate moves.
      *
-     * <p> The pawn can only capture on the diagonal, so you need to exclude the front
-     * side movement, and for the king because the king cannot be in check,
-     * it will not always be able to move to any square.
-     * This will prevent some cases such as the king capturing a piece adjacent to
-     * the opponent's king, leaving the king in check.
+     * <p>{@code possibleMoves(true)} is used as the base candidate set because
+     * it already accounts for board boundaries and allied pieces.
+     * {@code possibleMoves(false)} is used for each opponent piece so that
+     * pieces behind other pieces (including the king itself) are not missed.
      */
     public boolean[][] possibleMoves() {
-        boolean[][] source = possibleMoves(true);
+        boolean[][] candidates = possibleMoves(true);
 
-        /* The result is the matrix will be returned by the method. */
-        boolean[][] result = new boolean[8][8];
+        /* Build a union of all squares attacked by any opponent piece. */
+        boolean[][] attacked = new boolean[8][8];
 
-        /* Iterate through every position on the board. */
-        for (int a = 0; a < source.length; a++) {
-            for (int b = 0; b < source.length; b++) {
-                Position position = new Position(a, b);
-                Piece piece = match.getBoard().getPiece(position);
-                boolean[][] aux;
-
-                /* Do the merge of the source and auxiliary matrices if
-                the position has an opponent piece. */
-                if (match.validateOpponentPiece(position)) {
-
-                    /* The auxiliary matrix receives the piece possible movements.
-                     * If the piece is a pawn, only consider the capture
-                     * positions (diagonal).
-                     * Otherwise, if the piece is a king, calculate all possible moves
-                     * ignoring the king rules.
-                     * For other pieces, ignore the squares filled with allied pieces.
-                     */
-                    aux = piece.possibleMoves(false);
-
-                    /* Result receives the merge of the two matrices. */
-                    result = Util.mergePossibilities(aux, source, false);
+        for (Piece piece : match.getBoard().getActivePieces()) {
+            if (match.validateOpponentPiece(piece.getPosition())) {
+                boolean[][] opponentMoves = piece.possibleMoves(false);
+                for (int a = 0; a < attacked.length; a++) {
+                    for (int b = 0; b < attacked[a].length; b++) {
+                        if (opponentMoves[a][b])
+                            attacked[a][b] = true;
+                    }
                 }
             }
         }
-        return result;
+
+        /* Remove attacked squares from the candidate set. */
+        for (int a = 0; a < candidates.length; a++) {
+            for (int b = 0; b < candidates[a].length; b++) {
+                if (attacked[a][b])
+                    candidates[a][b] = false;
+            }
+        }
+
+        return candidates;
     }
 }
