@@ -171,21 +171,24 @@ public class ChessMatch {
     }
 
     /**
-     * Checks if castling is possible. Checks if there are pieces
-     * between the king and the rook and if the pieces have moved.
+     * Checks if castling is possible. Validates that:
+     * <ul>
+     *   <li>Neither the king nor the rook has moved.</li>
+     *   <li>There are no pieces between the king and the rook.</li>
+     *   <li>The king is not currently in check.</li>
+     *   <li>The king does not pass through any attacked square.</li>
+     *   <li>The king does not land on an attacked square (handled by
+     *       {@code King.possibleMoves()}, but also verified here for
+     *       completeness).</li>
+     * </ul>
      * @param kingPosition the king's position.
      * @param rookPosition the rook's position.
      * @return true if the player can perform the castling move.
-     * */
+     */
     public boolean validateCastlingMove(Position kingPosition, Position rookPosition) {
-        /* Validate if one of king or rook positions is null to
-        prevent a null pointer exception. */
         if (Objects.isNull(kingPosition) || Objects.isNull(rookPosition))
             return false;
 
-        /* If king position has an instance of King, and if the
-        rook position has an instance of Rook.
-        It prevents a class cast exception. */
         if (!validateCastlingPieces(kingPosition, rookPosition))
             return false;
 
@@ -198,20 +201,25 @@ public class ChessMatch {
             return false;
         }
 
-        /* Get the rook position based on the king position
-        to get the castling side. */
+        /* Castling is forbidden if the king is currently in check. */
+        if (verifyPossibleCheck(kingPosition))
+            return false;
+
         int step = (rookPosition.getRow() > kingPosition.getRow()) ? 1 : -1;
 
-        /* Check if there is another piece between the king
-        and the rook. */
+        /* Check that there are no pieces between king and rook,
+         * and that the king does not pass through an attacked square. */
         for (int row = kingPosition.getRow() + step;
              row != rookPosition.getRow(); row += step) {
 
-            Optional<Position> optionalPosition = Optional.of(
-                    new Position(row, kingPosition.getColumn())
-            );
+            Position squareBetween = new Position(row, kingPosition.getColumn());
 
-            if (!board.isPositionEmpty(optionalPosition.get()))
+            if (!board.isPositionEmpty(squareBetween))
+                return false;
+
+            /* The king only travels two squares; only check those for attacks. */
+            int distanceFromKing = Math.abs(row - kingPosition.getRow());
+            if (distanceFromKing <= 2 && verifyPossibleCheck(squareBetween))
                 return false;
         }
         return true;
