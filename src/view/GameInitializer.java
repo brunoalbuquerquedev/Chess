@@ -15,26 +15,52 @@ public class GameInitializer extends JFrame {
         setResizable(false);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        ChessMatch chessMatch = new ChessMatch();
-
         /* Media source (board logo): https://www.flaticon.com/free-icon/chess-board_107617 */
         ImageIcon icon = new ImageIcon(Objects.requireNonNull(
                 getClass().getResource("/resources/chess_logo.png")));
         setIconImage(icon.getImage());
 
-        /* Load the pieces images files. */
-        GameInterface gameInterface = createGameController(chessMatch);
-        getContentPane().add(gameInterface);
-
-        /* Size the window based on its content. */
-        pack();
-        centralizeGameWindow();
+        initGame();
 
         /* Make the container visible. */
         setVisible(true);
     }
 
-    private GameInterface createGameController(ChessMatch chessMatch) {
+    /**
+     * Builds (or rebuilds) the game: creates a new {@link ChessMatch},
+     * attaches the menu bar and a fresh {@link GameInterface}, then packs.
+     *
+     * <p>Calling {@code setJMenuBar()} before {@code pack()} ensures the frame
+     * grows to accommodate the menu without shrinking the board panel.</p>
+     */
+    private void initGame() {
+        ChessMatch chessMatch = new ChessMatch();
+        GameInterface gameInterface = createGameInterface(chessMatch);
+
+        /* The menu bar must be set before pack() so the JFrame increases its
+         * height by the menu height rather than stealing it from the board. */
+        GameMenuBar menuBar = new GameMenuBar(
+                this::restart,
+                gameInterface::repaint
+        );
+        setJMenuBar(menuBar);
+
+        getContentPane().removeAll();
+        getContentPane().add(gameInterface);
+
+        /* Let the frame resize to fit the new content + menu bar. */
+        pack();
+        centralizeGameWindow();
+    }
+
+    /** Resets the game by re-initialising all game objects. */
+    private void restart() {
+        initGame();
+        revalidate();
+        repaint();
+    }
+
+    private GameInterface createGameInterface(ChessMatch chessMatch) {
         PiecesLoader piecesLoader = new PiecesLoader(
                 new ImageIcon[Sizes.getBOARD_SIZE()][Sizes.getBOARD_SIZE()]
         );
@@ -49,7 +75,6 @@ public class GameInitializer extends JFrame {
     }
 
     private void centralizeGameWindow() {
-        /* Centralize the window manually. */
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         int x = (screenSize.width - getWidth()) / 2;
         int y = (screenSize.height - getHeight()) / 2;

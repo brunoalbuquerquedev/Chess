@@ -101,7 +101,7 @@ public class GameInterface extends JPanel {
         for (int row = 0; row < Sizes.getBOARD_SIZE(); row++) {
             for (int col = 0; col < Sizes.getBOARD_SIZE(); col++) {
                 g.setColor(Util.isEven(row + col)
-                        ? GameColors.BLACK : GameColors.WHITE);
+                        ? GameColors.getLight() : GameColors.getDark());
 
                 /*
                  * This method will create the squares on the panel.
@@ -156,7 +156,7 @@ public class GameInterface extends JPanel {
             for (int row = 0; row < Sizes.getBOARD_SIZE(); row++) {
                 for (int col = Sizes.getBOARD_SIZE() - 1; col >= 0; col--) {
                     if (possibilities[col][row]) {
-                        g.setColor(GameColors.HIGHLIGHTS);
+                        g.setColor(GameColors.getHighlights());
                         g.fillRect(
                                 1 + col * Sizes.getTileSize(),
                                 1 + row * Sizes.getTileSize(),
