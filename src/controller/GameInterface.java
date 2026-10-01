@@ -21,12 +21,15 @@ public class GameInterface extends JPanel {
     private final ChessMatch match;
     private final GameDrawer gameDrawer;
     private final GameController gameController;
+    private final Runnable restart;
 
-    public GameInterface(ChessMatch match, GameDrawer gameDrawer, GameController gameController) {
+    public GameInterface(ChessMatch match, GameDrawer gameDrawer,
+                         GameController gameController, Runnable restart) {
         super();
         this.match = match;
         this.gameDrawer = gameDrawer;
         this.gameController = gameController;
+        this.restart = restart;
 
         /* Set the game window size. */
         setPreferredSize(new Dimension(Sizes.getDimension(), Sizes.getDimension()));
@@ -71,15 +74,36 @@ public class GameInterface extends JPanel {
                 repaint();
 
                 if (match.isCheckmate()) {
-                    JOptionPane.showMessageDialog(null,
-                            "Checkmate. Game over.");
-                    System.exit(0);
+                    String winner = match.getWinner() == chess.ChessColor.WHITE
+                            ? "White" : "Black";
+                    int choice = JOptionPane.showConfirmDialog(
+                            GameInterface.this,
+                            "Checkmate! " + winner + " wins.\n\nStart a new game?",
+                            "Chess — Game Over",
+                            JOptionPane.YES_NO_OPTION,
+                            JOptionPane.INFORMATION_MESSAGE
+                    );
+                    if (choice == JOptionPane.YES_OPTION) {
+                        restart.run();
+                    } else {
+                        System.exit(0);
+                    }
+                    return;
                 }
 
                 if (match.isStalemate()) {
-                    JOptionPane.showMessageDialog(null,
-                            "It's a stalemate. Game over.");
-                    System.exit(0);
+                    int choice = JOptionPane.showConfirmDialog(
+                            GameInterface.this,
+                            "It's a stalemate. It's a draw!\n\nStart a new game?",
+                            "Chess — Stalemate",
+                            JOptionPane.YES_NO_OPTION,
+                            JOptionPane.INFORMATION_MESSAGE
+                    );
+                    if (choice == JOptionPane.YES_OPTION) {
+                        restart.run();
+                    } else {
+                        System.exit(0);
+                    }
                 }
             }
         });
