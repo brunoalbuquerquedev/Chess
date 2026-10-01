@@ -56,9 +56,7 @@ public class Rook extends ChessPiece {
     private void checkRookWithoutCapture(Position rook, boolean[][] possibilities, int[] arr) {
         Position position = new Position(rook.getRow() + arr[0], rook.getColumn() + arr[1]);
 
-        while (getBoard().positionExists(position)
-                && getBoard().isPositionEmpty(position)
-                || validatePieceCapture(position)) {
+        while (getBoard().positionExists(position)) {
 
             possibilities[position.getRow()][position.getColumn()] = true;
 

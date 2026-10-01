@@ -119,23 +119,22 @@ public class ChessMatch {
             return false;
 
         return (!((ChessPiece) board.getPiece(source)).hasMoved()
-                || !((ChessPiece) board.getPiece(target)).hasMoved());
+                && !((ChessPiece) board.getPiece(target)).hasMoved());
     }
 
     /**
      * Validate pawn promotion when a pawn reaches the last row.
      * @param piece the pawn piece.
+     * @param target the target position the pawn moved to.
      * @return true if the pawn is eligible for promotion.
      */
-    public boolean validatePawnPromotion(ChessPiece piece) {
-        if (Objects.isNull(piece)) {
+    public boolean validatePawnPromotion(ChessPiece piece, Position target) {
+        if (Objects.isNull(piece) || Objects.isNull(target)) {
             return false;
         }
 
         return piece instanceof Pawn
-                && piece.getPosition().getColumn() == 0
-                || piece instanceof Pawn
-                && piece.getPosition().getColumn() == 7;
+                && (target.getColumn() == 0 || target.getColumn() == 7);
     }
 
     /**
@@ -309,6 +308,9 @@ public class ChessMatch {
         board.removePiece(target);
         board.placePiece(target, sourcePiece);
 
+        if (Objects.nonNull(targetPiece))
+            board.getActivePieces().remove(targetPiece);
+
         /* If the moved piece is the king, it's necessary to update the king position. */
         optionalKingPosition = Optional.of(
                 sourcePiece instanceof King ? target : optionalKingPosition.get()
@@ -320,8 +322,10 @@ public class ChessMatch {
         board.removePiece(target);
         board.placePiece(source, sourcePiece);
 
-        if (Objects.nonNull(targetPiece))
+        if (Objects.nonNull(targetPiece)) {
             board.placePiece(target, targetPiece);
+            board.getActivePieces().add(targetPiece);
+        }
 
         return isCheck;
     }
