@@ -1,15 +1,13 @@
 package view;
 
 import javax.swing.*;
-import java.awt.*;
 import java.util.Objects;
 
-public class PiecesLoader extends JFrame {
+public class PiecesLoader {
 
     private final ImageIcon[][] piecesIcons;
 
-    public PiecesLoader(ImageIcon[][] piecesIcons) throws HeadlessException {
-        super();
+    public PiecesLoader(ImageIcon[][] piecesIcons) {
         this.piecesIcons = piecesIcons;
         loadInitialPiecesIcons();
     }

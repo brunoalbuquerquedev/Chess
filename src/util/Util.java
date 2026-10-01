@@ -1,11 +1,8 @@
 package util;
 
 import view.Sizes;
-import chess.ChessMatch;
 
 public class Util {
-
-    private static ChessMatch match;
 
     public Util() {
     }

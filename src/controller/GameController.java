@@ -81,7 +81,7 @@ public class GameController {
     }
 
     private boolean shouldSelectSource(ChessPiece piece) {
-        return isAllCoordinatesNull() && Objects.nonNull(piece)
+        return isAnyCoordinateNull() && Objects.nonNull(piece)
                 && match.validatePieceColor(piece.getPosition());
     }
 
@@ -106,10 +106,10 @@ public class GameController {
     }
 
     /**
-     * Checks if any coordinate is not null.
-     * @return true if all coordinates are null.
+     * Checks if any coordinate is null.
+     * @return true if any coordinate is null.
      */
-    protected boolean isAllCoordinatesNull() {
+    protected boolean isAnyCoordinateNull() {
         return Objects.isNull(aX) || Objects.isNull(aY)
                 || Objects.isNull(bX) || Objects.isNull(bY);
     }
@@ -195,9 +195,9 @@ public class GameController {
      */
     private void checkGameStatus(Position source, Position target) throws KingNotFoundException {
         playerHasLegalMoves = match.playerHasAnyLegalMove();
-        match.kingCheck = match.verifyPossibleCheck(match.getBoard().getKingPosition(match.getPlayerColor()));
-        match.checkmate = match.isCheckmate(playerHasLegalMoves);
-        match.stalemate = match.isStalemate(playerHasLegalMoves);
+        match.setKingCheck(match.verifyPossibleCheck(match.getBoard().getKingPosition(match.getPlayerColor())));
+        match.setCheckmate(match.isCheckmate(playerHasLegalMoves));
+        match.setStalemate(match.isStalemate(playerHasLegalMoves));
     }
 
     /**

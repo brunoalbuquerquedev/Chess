@@ -17,9 +17,33 @@ public class ChessMatch {
     private ChessColor playerColor;
     private int turn;
 
-    public boolean kingCheck;
-    public boolean stalemate;
-    public boolean checkmate;
+    private boolean kingCheck;
+    private boolean stalemate;
+    private boolean checkmate;
+
+    public boolean isKingCheck() {
+        return kingCheck;
+    }
+
+    public void setKingCheck(boolean kingCheck) {
+        this.kingCheck = kingCheck;
+    }
+
+    public boolean isStalemate() {
+        return stalemate;
+    }
+
+    public void setStalemate(boolean stalemate) {
+        this.stalemate = stalemate;
+    }
+
+    public boolean isCheckmate() {
+        return checkmate;
+    }
+
+    public void setCheckmate(boolean checkmate) {
+        this.checkmate = checkmate;
+    }
 
     public ChessMatch() {
         this.board = new Board(Sizes.getBOARD_SIZE(), Sizes.getBOARD_SIZE());
