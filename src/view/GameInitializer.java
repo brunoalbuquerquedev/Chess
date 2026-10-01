@@ -71,7 +71,7 @@ public class GameInitializer extends JFrame {
         GameController gameController = new GameController(chessMatch, gameDrawer);
 
         /* Make the connection between the user and the board. */
-        return new GameInterface(chessMatch, gameDrawer, gameController);
+        return new GameInterface(chessMatch, gameDrawer, gameController, this::restart);
     }
 
     private void centralizeGameWindow() {

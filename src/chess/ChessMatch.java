@@ -5,8 +5,6 @@ import boardgame.Board;
 import boardgame.Piece;
 import boardgame.Position;
 import pieces.*;
-
-import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -358,6 +356,17 @@ public class ChessMatch {
     }
 
     /**
+     * Returns the color of the winner after checkmate.
+     * Must be called after {@code nextTurn()}, at which point
+     * {@code getPlayerColor()} already holds the losing side's color,
+     * so the winner is the opposite color.
+     * @return the {@link ChessColor} of the winning player.
+     */
+    public ChessColor getWinner() {
+        return invertColor(getPlayerColor());
+    }
+
+    /**
      * Checks if the game has reached a checkmate state.
      * @param playerHasLegalMoves true if the player has legal moves.
      * @return true if the game is in checkmate.
@@ -371,16 +380,7 @@ public class ChessMatch {
         if (optionalKingPosition.isEmpty())
             throw new KingNotFoundException("King piece not found.");
 
-        if (kingCheck && !playerHasLegalMoves) {
-            JOptionPane.showMessageDialog(
-                    null,
-                    "Checkmate. Game over.",
-                    "Chess",
-                    JOptionPane.INFORMATION_MESSAGE,
-                    null);
-            return true;
-        }
-        return false;
+        return kingCheck && !playerHasLegalMoves;
     }
 
     /**
