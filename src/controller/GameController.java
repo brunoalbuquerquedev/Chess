@@ -134,7 +134,7 @@ public class GameController {
         Optional<Position> optionalTarget = Optional.of(new Position(bX, bY));
 
         if (!match.validateSourcePosition(optionalSource.get())
-                && !match.validateTargetPosition(optionalTarget.get())) {
+                || !match.validateTargetPosition(optionalTarget.get())) {
             return false;
         }
 
@@ -225,17 +225,18 @@ public class GameController {
          * reference the correct piece regardless of what ends up at target. */
         ChessPiece sourcePiece = (ChessPiece) match.getBoard().getPiece(optionalSource.get());
 
-        /* Validate the castling move before perform the move. */
-        if (match.validateCastlingPieces(optionalSource.get(), optionalTarget.get())
-                && match.validateCastlingMove(optionalSource.get(), optionalTarget.get())) {
+        /* Determine whether this is a castling move before executing it. */
+        boolean isCastling = match.validateCastlingPieces(optionalSource.get(), optionalTarget.get())
+                && match.validateCastlingMove(optionalSource.get(), optionalTarget.get());
 
+        if (isCastling) {
             performCastlingMove(optionalSource.get(), optionalTarget.get());
+            drawer.graphicCastlingMove(aX, aY, bX, bY);
         } else {
-            /* If the movement isn't an especial move, perform a normal move. */
+            /* If the movement isn't a special move, perform a normal move. */
             match.performPieceMove(optionalSource.get(), optionalTarget.get());
+            drawer.graphicNormalMove(aX, aY, bX, bY);
         }
-
-        drawer.graphicPieceMove(aX, aY, bX, bY);
 
         /* Checks for pawn promotion. */
         if (match.validatePawnPromotion(sourcePiece, optionalTarget.get())) {
