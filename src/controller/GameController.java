@@ -126,6 +126,7 @@ public class GameController {
 
     /**
      * This method validates if a move can be performed in the game.
+     * Rejects moves that would leave the player's own king in check.
      * @return true if a move can be performed, else false.
      */
     protected boolean verifyPlayerMove() {
@@ -143,6 +144,18 @@ public class GameController {
             cleanAllCoordinates();
             return false;
         }
+
+        /* Reject any move that would leave the player's own king in check. */
+        try {
+            if (match.isKingInCheck(optionalSource.get(), optionalTarget.get())) {
+                cleanAllCoordinates();
+                return false;
+            }
+        } catch (KingNotFoundException e) {
+            cleanAllCoordinates();
+            return false;
+        }
+
         return true;
     }
 

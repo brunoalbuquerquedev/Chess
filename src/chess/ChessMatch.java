@@ -304,15 +304,15 @@ public class ChessMatch {
     }
 
     /**
-     * Checks if the King is in check after the move.
-     * @param source the source position.
+     * Simulates the move from source to target and checks if the current
+     * player's king would be in check after that move.
+     * This is used to filter out illegal moves that would expose the king.
+     * @param source the source position of the piece to move.
      * @param target the target position.
-     * @return true if the King is in check.
+     * @return true if the king would be in check after the move.
      * @throws KingNotFoundException if the King is not found.
      */
     public boolean isKingInCheck(Position source, Position target) throws KingNotFoundException {
-        boolean isCheck;
-
         Piece sourcePiece = board.getPiece(source);
         Piece targetPiece = board.getPiece(target);
 
@@ -322,12 +322,7 @@ public class ChessMatch {
         if (optionalKingPosition.isEmpty())
             throw new KingNotFoundException("King piece not found.");
 
-        isCheck = verifyPossibleCheck(optionalKingPosition.get());
-
-        if (!isCheck)
-            return false;
-
-        /* Move the piece to target position. */
+        /* Simulate the move. */
         board.removePiece(source);
         board.removePiece(target);
         board.placePiece(target, sourcePiece);
@@ -335,14 +330,14 @@ public class ChessMatch {
         if (Objects.nonNull(targetPiece))
             board.getActivePieces().remove(targetPiece);
 
-        /* If the moved piece is the king, it's necessary to update the king position. */
-        optionalKingPosition = Optional.of(
-                sourcePiece instanceof King ? target : optionalKingPosition.get()
-        );
+        /* If the moved piece is the king, update the king position for the check. */
+        Position kingPositionAfterMove = sourcePiece instanceof King
+                ? target
+                : optionalKingPosition.get();
 
-        isCheck = verifyPossibleCheck(optionalKingPosition.get());
+        boolean isCheck = verifyPossibleCheck(kingPositionAfterMove);
 
-        /* Undo the selected piece move. */
+        /* Undo the simulated move. */
         board.removePiece(target);
         board.placePiece(source, sourcePiece);
 
@@ -368,9 +363,7 @@ public class ChessMatch {
         if (optionalKingPosition.isEmpty())
             throw new KingNotFoundException("King piece not found.");
 
-        King king = (King) board.getPiece(optionalKingPosition.get());
-
-        if (kingCheck && !king.hasAnyLegalMove() && playerHasLegalMoves) {
+        if (kingCheck && !playerHasLegalMoves) {
             JOptionPane.showMessageDialog(
                     null,
                     "Checkmate. Game over.",
@@ -412,11 +405,9 @@ public class ChessMatch {
         if (optionalKingPosition.isEmpty())
             throw new KingNotFoundException("King piece not found.");
 
-        King king = (King) board.getPiece(optionalKingPosition.get());
-
-        /* Returns true if the king can't move and the player has no legal moves,
-        but the king is not in check. */
-        if (!kingCheck && !king.hasAnyLegalMove() && !playerHasLegalMoves)
+        /* Returns true if the player has no legal moves and the king is not in check
+        (afogamento/stalemate — different from checkmate). */
+        if (!kingCheck && !playerHasLegalMoves)
             return true;
 
         if (turn < 29)
