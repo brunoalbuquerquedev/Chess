@@ -60,7 +60,7 @@ public class GameInterface extends JPanel {
                     repaint();
                 }
 
-                if (gameController.isAllCoordinatesNull())
+                if (gameController.isAnyCoordinateNull())
                     return;
 
                 gameController.controllerActions();
@@ -70,13 +70,13 @@ public class GameInterface extends JPanel {
                 and clean the coordinates. */
                 repaint();
 
-                if (match.checkmate) {
+                if (match.isCheckmate()) {
                     JOptionPane.showMessageDialog(null,
                             "Checkmate. Game over.");
                     System.exit(0);
                 }
 
-                if (match.stalemate) {
+                if (match.isStalemate()) {
                     JOptionPane.showMessageDialog(null,
                             "It's a stalemate. Game over.");
                     System.exit(0);
