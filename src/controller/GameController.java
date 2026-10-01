@@ -132,11 +132,6 @@ public class GameController {
         Optional<Position> optionalSource = Optional.of(new Position(aX, aY));
         Optional<Position> optionalTarget = Optional.of(new Position(bX, bY));
 
-        if (match.kingCheck) {
-            cleanAllCoordinates();
-            return false;
-        }
-
         if (!match.validateSourcePosition(optionalSource.get())
                 && !match.validateTargetPosition(optionalTarget.get())) {
             return false;
@@ -159,13 +154,16 @@ public class GameController {
      */
     protected void controllerActions() {
         try {
-            checkGameStatus(new Position(aX, aY), new Position(bX, bY));
-
             if (!verifyPlayerMove())
                 return;
 
+            Position source = new Position(aX, aY);
+            Position target = new Position(bX, bY);
             chessPlayerMove();
             match.nextTurn();
+
+            /* Check game status for the next player after the move is done. */
+            checkGameStatus(source, target);
         } catch (NullPointerException | NoSuchElementException e) {
             System.out.println("Controller: " + e.getClass() + "; "
                     + Arrays.toString(e.getStackTrace()));
@@ -189,15 +187,17 @@ public class GameController {
     /**
      * Check the stalemate, checkmate status and if the King or the
      * player can perform some play.
-     * @param source the position of the first piece.
-     * @param target the position of the second piece.
+     * After {@code nextTurn()} has been called, {@code match.getPlayerColor()} already
+     * returns the opponent's color, so we check that player's king.
+     * @param source the position of the piece that just moved (used for king-in-check detection).
+     * @param target the position the piece moved to.
      * @throws KingNotFoundException if {@code King}'s instance is not found.
      */
     private void checkGameStatus(Position source, Position target) throws KingNotFoundException {
         playerHasLegalMoves = match.playerHasAnyLegalMove();
-//        match.kingCheck = match.isKingInCheck(source, target);
-//        match.checkmate = match.isCheckmate(playerHasLegalMoves);
-//        match.stalemate = match.isStalemate(playerHasLegalMoves);
+        match.kingCheck = match.verifyPossibleCheck(match.getBoard().getKingPosition(match.getPlayerColor()));
+        match.checkmate = match.isCheckmate(playerHasLegalMoves);
+        match.stalemate = match.isStalemate(playerHasLegalMoves);
     }
 
     /**
@@ -207,7 +207,10 @@ public class GameController {
     protected void chessPlayerMove() throws KingNotFoundException {
         Optional<Position> optionalSource = Optional.of(new Position(aX, aY));
         Optional<Position> optionalTarget = Optional.of(new Position(bX, bY));
-        ChessPiece piece = (ChessPiece) match.getBoard().getPiece(optionalTarget.get());
+
+        /* Capture the source piece before the move, so pawn promotion can
+         * reference the correct piece regardless of what ends up at target. */
+        ChessPiece sourcePiece = (ChessPiece) match.getBoard().getPiece(optionalSource.get());
 
         /* Validate the castling move before perform the move. */
         if (match.validateCastlingPieces(optionalSource.get(), optionalTarget.get())
@@ -222,10 +225,9 @@ public class GameController {
         drawer.graphicPieceMove(aX, aY, bX, bY);
 
         /* Checks for pawn promotion. */
-        if (match.validatePawnPromotion(piece)) {
-            match.performPawnPromotion(optionalTarget.get(), piece);
-            drawer.graphicPawnPromotion(bX, bY, piece.getColor()
-            );
+        if (match.validatePawnPromotion(sourcePiece, optionalTarget.get())) {
+            match.performPawnPromotion(optionalTarget.get(), sourcePiece);
+            drawer.graphicPawnPromotion(bX, bY, sourcePiece.getColor());
         }
     }
 

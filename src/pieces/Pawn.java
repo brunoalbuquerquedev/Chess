@@ -8,8 +8,11 @@ import chess.ChessPiece;
 
 public class Pawn extends ChessPiece {
 
+    private final ChessMatch match;
+
     public Pawn(Board board, ChessColor chessColor, ChessMatch match) {
         super(board, chessColor);
+        this.match = match;
     }
 
     @Override
